@@ -2,3 +2,9 @@
 Debug/
 Release/
 x64/
+__pycache__/
+obj/
+test/libStrQueue.a
+test/libStrQueue.def
+test/StrQueue.dll
+_memmod-*

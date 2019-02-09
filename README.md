@@ -2,7 +2,7 @@
 
 **`memmod`** is a python library used to load dll libraries directly from memory. 
 
-`memmod` implements basic functinality for loading `mimikatz` dll, available on https://github.com/Mathtin/mimikatz
+`memmod` only implements basic functinality for loading dll and resolving function names. This library meant to be used with ctypes.
 
 If you don't want to build it, binaries are available on https://github.com/Mathtin/memmod/releases
 
