@@ -87,7 +87,7 @@ _memmod = Extension('memmod._memmod',
     extra_compile_args=CFLAGS)
 
 setup(name = 'memmod',
-       version = '1.0',
+       version = '1.0.1',
        description = 'loads dll directly from memory',
        long_description = 'Python library used to load dll libraries directly from memory',
        author='Daniel Shiko',
