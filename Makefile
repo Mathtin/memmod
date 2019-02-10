@@ -4,7 +4,7 @@
 #......../....../--\|.|.|.|i|..|....\.../.........#
 #        Mathtin (c)                              #
 ###################################################
-#   Author: Daniil [Mathtin] Shigapov             #
+#   Author: Daniel [Mathtin] Shiko                #
 #   Copyright (c) 2017 <wdaniil@mail.ru>          #
 #   This file is released under the MPL license.  #
 ###################################################

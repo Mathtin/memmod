@@ -23,7 +23,14 @@
  * Daniil [Mathtin] Shigapov. All Rights Reserved.
  */
 
+#ifdef _DEBUG
+#undef _DEBUG
 #include <Python.h>
+#define _DEBUG
+#else
+#include <Python.h>
+#endif
+
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>

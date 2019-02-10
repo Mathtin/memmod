@@ -4,7 +4,7 @@
 /*
  * Python library for Memory DLL loading
  *
- * Copyright (c) 2019 by Daniil [Mathtin] Shigapov / wdaniil@mail.ru
+ * Copyright (c) 2019 by Daniel [Mathtin] Shiko / wdaniil@mail.ru
  * https://mathtin.ru
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -17,11 +17,22 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Initial Developer of the Original Code is Daniil [Mathtin] Shigapov.
+ * The Initial Developer of the Original Code is Daniel [Mathtin] Shiko.
  *
- * Portions created by Daniil [Mathtin] Shigapov are Copyright (C) 2019
- * Daniil [Mathtin] Shigapov. All Rights Reserved.
+ * Portions created by Daniel [Mathtin] Shiko are Copyright (C) 2019
+ * Daniel [Mathtin] Shiko. All Rights Reserved.
  */
+ 
+ struct module_state {
+    PyObject *error;
+};
+
+#if PY_MAJOR_VERSION >= 3
+#define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
+#else
+#define GETSTATE(m) (&_state)
+static struct module_state _state;
+#endif
 
 static FILE* logfile;
 static int loglevel;
@@ -35,7 +46,7 @@ void get_time(char * buffer) {
 }
 
 static void _log(int log_type, const char * str) {
-if (logfile == NULL || log_type > loglevel) {
+    if (logfile == NULL || log_type > loglevel) {
         return;
     }
     char str_base[38];
@@ -45,12 +56,19 @@ if (logfile == NULL || log_type > loglevel) {
     case LOG_DEBUG: memcpy(str_base, LOG_DEBUG_STR, sizeof(LOG_DEBUG_STR)); break;
     }
     get_time(str_base + LOG_STR_PADDING);
-    fprintf(logfile, str_base, str); fflush(logfile);
+    fprintf(logfile, str_base, str);
+    fflush(logfile);
+}
+
+static PyObject * error_out(PyObject *m) {
+    struct module_state *st = GETSTATE(m);
+    PyErr_SetString(st->error, "something bad happened");
+    return NULL;
 }
 
 static PyObject * memmod_SetLogFile(PyObject *self, PyObject *args) {
     LPCSTR filename;
-	_log(LOG_DEBUG, "set log call");
+    _log(LOG_DEBUG, "set log call");
     if (!PyArg_ParseTuple(args, "s", &filename)) {
         _log(LOG_DEBUG, "bad args");
         return NULL;
@@ -64,7 +82,7 @@ static PyObject * memmod_SetLogFile(PyObject *self, PyObject *args) {
 }
 
 static PyObject * memmod_SetLogLevel(PyObject *self, PyObject *args) {
-	_log(LOG_DEBUG, "set log call");
+    _log(LOG_DEBUG, "set log call");
     if (!PyArg_ParseTuple(args, "i", &loglevel)) {
         _log(LOG_DEBUG, "bad args");
         return NULL;
@@ -76,7 +94,7 @@ static PyObject * memmod_MemoryLoadLibrary(PyObject *self, PyObject *args) {
     const void *data;
     size_t size;
     HMEMORYMODULE handle;
-	_log(LOG_DEBUG, "load library call");
+    _log(LOG_DEBUG, "load library call");
     if (!PyArg_ParseTuple(args, "y#", &data, &size)) {
         _log(LOG_DEBUG, "bad args");
         return NULL;
@@ -94,7 +112,7 @@ static PyObject * memmod_MemoryGetProcAddress(PyObject *self, PyObject *args) {
     HMEMORYMODULE handle;
     LPCSTR name;
     FARPROC func;
-	_log(LOG_DEBUG, "get proc call");
+    _log(LOG_DEBUG, "get proc call");
     if (!PyArg_ParseTuple(args, "ns", &handle, &name)) {
         _log(LOG_DEBUG, "bad args");
         return NULL;
@@ -105,7 +123,7 @@ static PyObject * memmod_MemoryGetProcAddress(PyObject *self, PyObject *args) {
 
 static PyObject * memmod_MemoryFreeLibrary(PyObject *self, PyObject *args) {
     HMEMORYMODULE handle;
-	_log(LOG_DEBUG, "free library call");
+    _log(LOG_DEBUG, "free library call");
     if (!PyArg_ParseTuple(args, "n", &handle)) {
         _log(LOG_DEBUG, "bad args");
         return NULL;
@@ -117,17 +135,21 @@ static PyObject * memmod_MemoryFreeLibrary(PyObject *self, PyObject *args) {
 static int _get_name(PyObject *obj, const char **pname) {
     if (PyLong_Check(obj)) {
         /* We have to use MAKEINTRESOURCEA for Windows CE.
-           Works on Windows as well, of course.
+         * Works on Windows as well, of course.
         */
         *pname = MAKEINTRESOURCEA(PyLong_AsUnsignedLongMask(obj) & 0xFFFF);
         return 1;
     }
     if (PyBytes_Check(obj)) {
-        *pname = PyBytes_AS_STRING(obj);
+        *pname = PyBytes_AsString(obj);
         return *pname ? 1 : 0;
     }
     if (PyUnicode_Check(obj)) {
+        #if PY_MAJOR_VERSION >= 3
         *pname = PyUnicode_AsUTF8(obj);
+        #else
+        *pname = PyBytes_AsString(obj);
+        #endif
         return *pname ? 1 : 0;
     }
     PyErr_SetString(PyExc_TypeError,
@@ -144,12 +166,13 @@ static PyObject * memmod_InitCFuncPtr(PyObject *self_, PyObject *args) {
     PyObject *obj;
     HMEMORYMODULE handle;
     PyObject *paramflags = NULL;
-	_log(LOG_DEBUG, "InitCFuncPtr call");
+    _log(LOG_DEBUG, "InitCFuncPtr call");
     
-    // InitCFuncPtr((ftuple), paramflags)
+    // InitCFuncPtr(self, (ftuple), paramflags)
     if (!PyArg_ParseTuple(args, "OO|O", (PyObject *)&self, &ftuple, &paramflags)) {
         return NULL;
-    } else if (paramflags == Py_None) {
+    }
+    if (paramflags == Py_None) {
         paramflags = NULL;
     }
     ftuple = PySequence_Tuple(ftuple);
@@ -162,7 +185,7 @@ static PyObject * memmod_InitCFuncPtr(PyObject *self_, PyObject *args) {
         Py_DECREF(ftuple);
         return NULL;
     }
-
+    // dll._handle
     obj = PyObject_GetAttrString(dll, "_handle");
     if (!obj) {
         Py_DECREF(ftuple);
@@ -210,51 +233,86 @@ static PyObject * memmod_InitCFuncPtr(PyObject *self_, PyObject *args) {
 }
 
 static PyMethodDef _memmod_module_methods[] = {
-	{"SetLogFile",            memmod_SetLogFile,            METH_VARARGS,
-	 "Set file for logging"},
-	{"SetLogLevel",           memmod_SetLogLevel,           METH_VARARGS,
-	 "Set logging level"},
-	{"MemoryLoadLibrary",     memmod_MemoryLoadLibrary,     METH_VARARGS,
-	 "Loads dll from memory"},
-	{"MemoryGetProcAddress",  memmod_MemoryGetProcAddress,  METH_VARARGS,
-	 "Resolves function address"},
-	{"MemoryFreeLibrary",     memmod_MemoryFreeLibrary,     METH_VARARGS,
-	 "Unloads dll from memory"},
-	{"InitCFuncPtr",          memmod_InitCFuncPtr,          METH_VARARGS,
-	 "Init CFuncPtr Object"},
-	{NULL, NULL, 0, NULL}        /* Sentinel */
+    {"error_out", (PyCFunction)error_out, METH_NOARGS, NULL},
+    
+    {"SetLogFile",            memmod_SetLogFile,            METH_VARARGS,
+     "Set file for logging"},
+    {"SetLogLevel",           memmod_SetLogLevel,           METH_VARARGS,
+     "Set logging level"},
+    {"MemoryLoadLibrary",     memmod_MemoryLoadLibrary,     METH_VARARGS,
+     "Loads dll from memory"},
+    {"MemoryGetProcAddress",  memmod_MemoryGetProcAddress,  METH_VARARGS,
+     "Resolves function address"},
+    {"MemoryFreeLibrary",     memmod_MemoryFreeLibrary,     METH_VARARGS,
+     "Unloads dll from memory"},
+    {"InitCFuncPtr",          memmod_InitCFuncPtr,          METH_VARARGS,
+     "Init CFuncPtr Object"},
+    {NULL, NULL, 0, NULL}        /* Sentinel */
 };
+
+#if PY_MAJOR_VERSION >= 3
+
+static int memmod_traverse(PyObject *m, visitproc visit, void *arg) {
+    Py_VISIT(GETSTATE(m)->error);
+    return 0;
+}
+
+static int memmod_clear(PyObject *m) {
+    Py_CLEAR(GETSTATE(m)->error);
+    return 0;
+}
 
 static const char module_docs[] =
 "Load dll libraries directly from memory";
 
 static struct PyModuleDef _memmodmodule = {
-    PyModuleDef_HEAD_INIT,
-    "_memmod",
-    module_docs,
-    -1,
-    _memmod_module_methods,
-    NULL,
-    NULL,
-    NULL,
-    NULL
+        PyModuleDef_HEAD_INIT,
+        "_memmod",
+        module_docs,
+        sizeof(struct module_state),
+        _memmod_module_methods,
+        NULL,
+        memmod_traverse,
+        memmod_clear,
+        NULL
 };
 
-PyMODINIT_FUNC PyInit__memmod(void) {
-    PyObject *m;
-    
+#define INITERROR return NULL
+
+PyMODINIT_FUNC PyInit__memmod(void) 
+
+#else // PY_MAJOR_VERSION == 2
+
+#define INITERROR return
+void init_memmod(void)
+
+#endif // ! Python version
+{
     logfile = NULL;
 #ifdef _DEBUG
     loglevel = LOG_DEBUG;
 #else
     loglevel = LOG_ERROR;
 #endif
-	
-    PyEval_InitThreads();
-    m = PyModule_Create(&_memmodmodule);
-    if (!m) {
-        return NULL;
-    }
     
-    return m;
+#if PY_MAJOR_VERSION >= 3
+    PyObject *module = PyModule_Create(&_memmodmodule);
+#else
+    PyObject *module = Py_InitModule("_memmod", _memmod_module_methods);
+#endif
+
+    if (!module) {
+        INITERROR;
+    }
+    struct module_state *st = GETSTATE(module);
+
+    st->error = PyErr_NewException("memmod.Error", NULL, NULL);
+    if (st->error == NULL) {
+        Py_DECREF(module);
+        INITERROR;
+    }
+
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
 }

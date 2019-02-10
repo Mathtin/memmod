@@ -6,20 +6,45 @@
 #......../....../--\|.|.|.|i|..|....\.../.........#
 #        Mathtin (c)                              #
 ###################################################
-#	Author: Daniil [Mathtin] Shigapov             #
+#   Author: Daniel [Mathtin] Shiko                #
 #   Copyright (c) 2019 <wdaniil@mail.ru>          #
-#   This file is released under the MIT license.  #
+#   This file is released under the MPL license.  #
 ###################################################
-    
+
 __author__ = "Mathtin"
-__date__ = "$05.11.2015 17:43:27$"
+__date__ = "$07.02.2019 00:00:00$"
+
+"""
+ * Test file for memmod project
+ *
+ * Copyright (c) 2019 by Daniel [Mathtin] Shiko / wdaniil@mail.ru
+ * https://mathtin.ru
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Initial Developer of the Original Code is Daniel [Mathtin] Shiko.
+ *
+ * Portions created by Daniel [Mathtin] Shiko are Copyright (C) 2019
+ * Daniel [Mathtin] Shiko. All Rights Reserved.
+"""
 
 import memmod
 import ctypes
 
 class StrQueue(object):
+    # 
+    #   Static members
+    #
     __dll = None
-        
+    # DLL function object holders
     __New     = None
     __Delete  = None
     __PushPop = None
@@ -45,7 +70,8 @@ class StrQueue(object):
         StrQueue.__Pop    = StrQueue_PushPop_proto(("StrQueue_Pop", dll), ((memmod.PARAMFLAG_FIN,), (memmod.PARAMFLAG_FIN | memmod.PARAMFLAG_FOUT,), (memmod.PARAMFLAG_FIN,)))
         StrQueue.__Len    = StrQueue_Len_proto(("StrQueue_Len", dll))
         StrQueue.__Empty  = StrQueue_Empty_proto(("StrQueue_Empty", dll))
-        
+    
+    # Object methods
     def __init__(self):
         print('[!] Cratring new instance')
         self.__handle = self.__New()

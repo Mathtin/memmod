@@ -6,7 +6,7 @@
 #......../....../--\|.|.|.|i|..|....\.../.........#
 #        Mathtin (c)                              #
 ###################################################
-#   Author: Daniil [Mathtin] Shigapov             #
+#   Author: Daniel [Mathtin] Shiko                #
 #   Copyright (c) 2019 <wdaniil@mail.ru>          #
 #   This file is released under the MPL license.  #
 ###################################################
@@ -17,7 +17,7 @@ __date__ = "$07.02.20019 00:00:00$"
 """
  * Python library for Memory DLL loading
  *
- * Copyright (c) 2019 by Daniil [Mathtin] Shigapov / wdaniil@mail.ru
+ * Copyright (c) 2019 by Daniel [Mathtin] Shiko / wdaniil@mail.ru
  * https://mathtin.ru
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -30,10 +30,10 @@ __date__ = "$07.02.20019 00:00:00$"
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Initial Developer of the Original Code is Daniil [Mathtin] Shigapov.
+ * The Initial Developer of the Original Code is Daniel [Mathtin] Shiko.
  *
- * Portions created by Daniil [Mathtin] Shigapov are Copyright (C) 2019
- * Daniil [Mathtin] Shigapov. All Rights Reserved.
+ * Portions created by Daniel [Mathtin] Shiko are Copyright (C) 2019
+ * Daniel [Mathtin] Shiko. All Rights Reserved.
 """
 
 import ctypes

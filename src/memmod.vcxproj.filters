@@ -15,18 +15,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="memmod.c">
+    <ClCompile Include="src\memmod.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MemoryModule.c">
+    <ClCompile Include="src\MemoryModule.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MemoryModule.h">
+    <ClInclude Include="src\memmod.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="memmod.h">
+    <ClInclude Include="src\MemoryModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
