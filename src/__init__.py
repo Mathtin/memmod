@@ -49,7 +49,7 @@ class MemDLL(ctypes.WinDLL):
                     use_errno=False,
                     use_last_error=False):
         handle = MemoryLoadLibrary(data)
-        super().__init__("[AT %X]" % handle, mode, handle, use_errno, use_last_error)
+        super(MemDLL, self).__init__("[AT %X]" % handle, mode, handle, use_errno, use_last_error)
        
     def close(self):
         MemoryFreeLibrary(self._handle)

@@ -78,7 +78,7 @@ static PyObject * memmod_SetLogFile(PyObject *self, PyObject *args) {
         logfile = NULL;
     }
     logfile = fopen(filename, "a");
-    return Py_BuildValue("n", logfile);
+    return Py_BuildValue("K", logfile);
 }
 
 static PyObject * memmod_SetLogLevel(PyObject *self, PyObject *args) {
@@ -95,7 +95,11 @@ static PyObject * memmod_MemoryLoadLibrary(PyObject *self, PyObject *args) {
     size_t size;
     HMEMORYMODULE handle;
     _log(LOG_DEBUG, "load library call");
+#if PY_MAJOR_VERSION >= 3
     if (!PyArg_ParseTuple(args, "y#", &data, &size)) {
+#else
+    if (!PyArg_ParseTuple(args, "t#", &data, &size)) {
+#endif
         _log(LOG_DEBUG, "bad args");
         return NULL;
     }
@@ -105,7 +109,7 @@ static PyObject * memmod_MemoryLoadLibrary(PyObject *self, PyObject *args) {
         PyErr_SetString(PyExc_Exception, "Expected a COM this pointer as first argument");
         return NULL;
     }
-    return Py_BuildValue("n", (Py_ssize_t)handle);
+    return Py_BuildValue("K", (Py_ssize_t)handle);
 }
 
 static PyObject * memmod_MemoryGetProcAddress(PyObject *self, PyObject *args) {
@@ -118,7 +122,7 @@ static PyObject * memmod_MemoryGetProcAddress(PyObject *self, PyObject *args) {
         return NULL;
     }
     func = MemoryGetProcAddress(handle, name);
-    return Py_BuildValue("n", (Py_ssize_t)func);
+    return Py_BuildValue("K", (Py_ssize_t)func);
 }
 
 static PyObject * memmod_MemoryFreeLibrary(PyObject *self, PyObject *args) {

@@ -40,11 +40,8 @@ import memmod
 import ctypes
 
 class StrQueue(object):
-    # 
-    #   Static members
-    #
     __dll = None
-    # DLL function object holders
+        
     __New     = None
     __Delete  = None
     __PushPop = None
@@ -63,17 +60,16 @@ class StrQueue(object):
         StrQueue_PushPop_proto = memmod.WINFUNCTYPE(None, ctypes.c_void_p, ctypes.c_char_p, ctypes.c_size_t)
         StrQueue_Len_proto     = memmod.WINFUNCTYPE(ctypes.c_size_t, ctypes.c_void_p)
         StrQueue_Empty_proto   = memmod.WINFUNCTYPE(ctypes.c_int, ctypes.c_void_p)
-        
+
         StrQueue.__New    = StrQueue_New_proto(("StrQueue_New", dll))
         StrQueue.__Delete = StrQueue_Delete_proto(("StrQueue_Delete", dll))
         StrQueue.__Push   = StrQueue_PushPop_proto(("StrQueue_Push", dll))
         StrQueue.__Pop    = StrQueue_PushPop_proto(("StrQueue_Pop", dll), ((memmod.PARAMFLAG_FIN,), (memmod.PARAMFLAG_FIN | memmod.PARAMFLAG_FOUT,), (memmod.PARAMFLAG_FIN,)))
         StrQueue.__Len    = StrQueue_Len_proto(("StrQueue_Len", dll))
         StrQueue.__Empty  = StrQueue_Empty_proto(("StrQueue_Empty", dll))
-    
-    # Object methods
+        
     def __init__(self):
-        print('[!] Cratring new instance')
+        print('[!] Constructing instance')
         self.__handle = self.__New()
     
     def __del__(self):
@@ -81,12 +77,13 @@ class StrQueue(object):
         self.__Delete(self.__handle)
         
     def push(self, s):
-        self.__Push(self.__handle, ctypes.c_char_p(s.encode('utf-8')), len(s))
+        buffer = s.encode('utf-8')
+        self.__Push(self.__handle, ctypes.c_char_p(buffer), len(buffer))
     
     def pop(self):
-        buffer = bytes(255)
+        buffer = bytes(1) * 255
         self.__Pop(self.__handle, ctypes.c_char_p(buffer), len(buffer))
-        return buffer[:buffer.index(0)].decode('utf-8')
+        return buffer[:buffer.index('\0')].decode('utf-8')
         
     def __len__(self):
         return self.__Len(self.__handle)

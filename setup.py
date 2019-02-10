@@ -48,11 +48,11 @@ if OS != "nt":
 
 ARCH        = architecture()[0]
 
-if distutils.util.get_platform() == 'mingw':
-    if ARCH == '64bit':
-        distutils.util.get_platform = lambda: 'mingw64'
-    elif ARCH == '32bit':
-        distutils.util.get_platform = lambda: 'mingw32'
+#if distutils.util.get_platform() == 'mingw':
+#    if ARCH == '64bit':
+#        distutils.util.get_platform = lambda: 'mingw64'
+#    elif ARCH == '32bit':
+#        distutils.util.get_platform = lambda: 'mingw32'
 
 if ARCH == '64bit':
     if path.join('mingw64', 'bin') in PYEXEPATH:
