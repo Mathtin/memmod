@@ -24,6 +24,10 @@ mkdir dist && mkdir dist/x64 && mkdir dist/Win32
 
 mv dist/memmod* dist/Win32
 
+rm -rf build/
+rm -rf memmod.egg-info/
+rm -rf memmod-1.0/
+
 /mingw64/bin/python2 setup.py bdist_wheel || exit
 
 /mingw64/bin/python3 setup.py bdist_wheel || exit
