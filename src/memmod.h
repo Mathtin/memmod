@@ -46,6 +46,12 @@
 #define LOG_INFO_STR    "[INFO]  "
 #define LOG_DEBUG_STR   "[DEBUG] "
 
+#if !defined(__MINGW32__) //MinGW32 does not support _declspec
+    #define EXP_FUNC extern _declspec(dllexport)
+#else //defined(__WINDOWS__) && !defined(__MINGW32__)
+    #define EXP_FUNC
+#endif //defined(__WINDOWS__) && !defined(__MINGW32__)
+
 union value {
                 char c[16];
                 short s;

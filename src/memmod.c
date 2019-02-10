@@ -288,7 +288,7 @@ PyMODINIT_FUNC PyInit__memmod(void)
 #else // PY_MAJOR_VERSION == 2
 
 #define INITERROR return
-_declspec(dllexport) void init_memmod(void)
+EXP_FUNC void init_memmod(void)
 
 #endif // ! Python version
 {
