@@ -3,12 +3,11 @@ Win32/
 x64/
 __pycache__/
 obj/
-test/libStrQueue.a
-test/libStrQueue.def
-test/StrQueue.dll
-_memmod-*
 dist/
 build/
 memmod.egg-info/
 MANIFEST
-
+setup.py
+*.dll
+*.pyd
+*.pyc

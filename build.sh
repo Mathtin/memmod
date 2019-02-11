@@ -11,105 +11,89 @@
 #   This file is released under the MPL license.  #
 ###################################################
 
-rm -rf build/
-rm -rf dist/
-rm -rf memmod.egg-info/
-rm -rf memmod-1.0.1/
+MEMMOD_VER=1.1.0
 
-mkdir dist && mkdir dist/x64 && mkdir dist/Win32
+PY2_32_MINGW=/mingw32/bin/python2
+PY2_64_MINGW=/mingw64/bin/python2
 
-/mingw32/bin/python2 setup.py bdist_wheel || exit
+PY3_32_MINGW=/mingw32/bin/python3
+PY3_64_MINGW=/mingw64/bin/python3
 
-/mingw32/bin/python3 setup.py bdist_wheel || exit
+PYDIR2_32_WIN=/c/Python27/
+PYDIR2_64_WIN=/c/Python27amd64/
 
-mv dist/memmod* dist/Win32
+PYDIR3_32_WIN=/c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/Shared/Python36_86
+PYDIR3_64_WIN=/c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/Shared/Python36_64
 
-rm -rf build/
-rm -rf memmod.egg-info/
-rm -rf memmod-1.0.1/
+WD=$PWD
 
-/mingw64/bin/python2 setup.py bdist_wheel || exit
+echo "[*] Cleaning directory"
+git clean -xdf > /dev/null
 
-/mingw64/bin/python3 setup.py bdist_wheel || exit
+if test $# -gt 0 && test $1 = "clean"; then
+    exit
+fi
+
+echo "[*] Making additionoal directories"
+mkdir obj && mkdir dist && mkdir dist/x64 && mkdir dist/Win32 || exit
+
+echo "[!] Building memmod $MEMMOD_VER"
+
+echo "[*] Building unit tests"
+cd tests
+make > /dev/null || exit
+cd ..
+
+# Set library version
+echo "[*] setup.py.in > setup.py"
+sed -e "s/%MEMMOD_VER%/'$MEMMOD_VER'/g" setup.py.in > setup.py || exit
+
+echo "[*] Building python2 lib for mingw32"
+$PY2_32_MINGW setup.py bdist_wheel > /dev/null || exit
+
+echo "[*] Building python3 lib for mingw32"
+$PY3_32_MINGW setup.py bdist_wheel > /dev/null || exit
+
+mv dist/memmod* dist/Win32 || exit
+echo "[!] Wheels available in dist/Win32"
+
+rm -rf build &> /dev/null
+
+echo "[*] Building python2 lib for mingw64"
+$PY2_64_MINGW setup.py bdist_wheel > /dev/null || exit
+
+echo "[*] Building python3 lib for mingw64"
+$PY3_64_MINGW setup.py bdist_wheel > /dev/null || exit
 
 mv dist/memmod* dist/x64
+echo "[!] Wheels available in dist/x64"
 
-python setup.py sdist || exit
+echo "[*] Building source dist package"
+python setup.py sdist > /dev/null || exit
+echo "[!] Source dist available in dist"
 
-wheel unpack dist/Win32/memmod-1.0.1-cp27-cp27m-mingw.whl
-rm memmod-1.0.1/memmod/_memmod*
-sed -e "s/mingw/win32/g" memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL > temp.txt
-mv temp.txt memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL
-SIGN=$(cat memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL | shasum -a 256 | cut -d " " -f 1 | xxd -r -p | base64)
-SIGN="${SIGN:0:-1}"
-SIZE=$(stat --printf="%s" memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL)
-sed -e "s;WHEEL,sha256=.*$;WHEEL,sha256=$SIGN,$SIZE;g" memmod-1.0.1/memmod-1.0.1.dist-info/RECORD > temp.txt
-mv temp.txt memmod-1.0.1/memmod-1.0.1.dist-info/RECORD
-cp Win32/Release27/_memmod.pyd memmod-1.0.1/memmod
-SIGN=$(cat memmod-1.0.1/memmod/_memmod.pyd | shasum -a 256 | cut -d " " -f 1 | xxd -r -p | base64)
-SIGN="${SIGN:0:-1}"
-SIZE=$(stat --printf="%s" memmod-1.0.1/memmod/_memmod.pyd)
-sed -e "s;_memmod\.pyd,sha256=.*$;_memmod\.pyd,sha256=$SIGN,$SIZE;g" memmod-1.0.1/memmod-1.0.1.dist-info/RECORD > temp.txt
-mv temp.txt memmod-1.0.1/memmod-1.0.1.dist-info/RECORD
-wheel pack memmod-1.0.1
-rm -rf memmod-1.0.1/
+rm -rf build &> /dev/null
 
-wheel unpack dist/x64/memmod-1.0.1-cp27-cp27m-mingw.whl
-rm memmod-1.0.1/memmod/_memmod*
-sed -e "s/mingw/win_amd64/g" memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL > temp.txt
-mv temp.txt memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL
-SIGN=$(cat memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL | shasum -a 256 | cut -d " " -f 1 | xxd -r -p | base64)
-SIGN="${SIGN:0:-1}"
-SIZE=$(stat --printf="%s" memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL)
-sed -e "s;WHEEL,sha256=.*$;WHEEL,sha256=$SIGN,$SIZE;g" memmod-1.0.1/memmod-1.0.1.dist-info/RECORD > temp.txt
-mv temp.txt memmod-1.0.1/memmod-1.0.1.dist-info/RECORD
-cp x64/Release27/_memmod.pyd memmod-1.0.1/memmod
-SIGN=$(cat memmod-1.0.1/memmod/_memmod.pyd | shasum -a 256 | cut -d " " -f 1 | xxd -r -p | base64)
-SIGN="${SIGN:0:-1}"
-SIZE=$(stat --printf="%s" memmod-1.0.1/memmod/_memmod.pyd)
-sed -e "s;_memmod\.pyd,sha256=.*$;_memmod\.pyd,sha256=$SIGN,$SIZE;g" memmod-1.0.1/memmod-1.0.1.dist-info/RECORD > temp.txt
-mv temp.txt memmod-1.0.1/memmod-1.0.1.dist-info/RECORD
-wheel pack memmod-1.0.1
-rm -rf memmod-1.0.1/
+OLDPATH=$PATH
+PATH=$PYDIR2_32_WIN:$PYDIR2_32_WIN/Scripts:$PATH
+echo "[*] Building python2 lib for win32"
+python.exe setup.py bdist_wheel &> /dev/null || exit
+PATH=$OLDPATH
 
-wheel unpack dist/Win32/memmod-1.0.1-cp37-cp37m-mingw.whl
-rm memmod-1.0.1/memmod/_memmod*
-sed -e "s/mingw/win32/g" memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL > temp.txt
-mv temp.txt memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL
-sed -e "s/Tag:\ cp37-cp37m/Tag:\ cp36-cp36m/g" memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL > temp.txt
-mv temp.txt memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL
-SIGN=$(cat memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL | shasum -a 256 | cut -d " " -f 1 | xxd -r -p | base64)
-SIGN="${SIGN:0:-1}"
-SIZE=$(stat --printf="%s" memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL)
-sed -e "s;WHEEL,sha256=.*$;WHEEL,sha256=$SIGN,$SIZE;g" memmod-1.0.1/memmod-1.0.1.dist-info/RECORD > temp.txt
-mv temp.txt memmod-1.0.1/memmod-1.0.1.dist-info/RECORD
-cp Win32/Release36/_memmod.pyd memmod-1.0.1/memmod
-SIGN=$(cat memmod-1.0.1/memmod/_memmod.pyd | shasum -a 256 | cut -d " " -f 1 | xxd -r -p | base64)
-SIGN="${SIGN:0:-1}"
-SIZE=$(stat --printf="%s" memmod-1.0.1/memmod/_memmod.pyd)
-sed -e "s;_memmod\.pyd,sha256=.*$;_memmod\.pyd,sha256=$SIGN,$SIZE;g" memmod-1.0.1/memmod-1.0.1.dist-info/RECORD > temp.txt
-mv temp.txt memmod-1.0.1/memmod-1.0.1.dist-info/RECORD
-wheel pack memmod-1.0.1
-rm -rf memmod-1.0.1/
+OLDPATH=$PATH
+PATH=$PYDIR2_64_WIN:$PYDIR2_64_WIN/Scripts:$PATH
+echo "[*] Building python2 lib for x64"
+python.exe setup.py bdist_wheel &> /dev/null || exit
+PATH=$OLDPATH
 
-wheel unpack dist/x64/memmod-1.0.1-cp37-cp37m-mingw.whl
-rm memmod-1.0.1/memmod/_memmod*
-sed -e "s/mingw/win_amd64/g" memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL > temp.txt
-mv temp.txt memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL
-sed -e "s/Tag:\ cp37-cp37m/Tag:\ cp36-cp36m/g" memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL > temp.txt
-mv temp.txt memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL
-SIGN=$(cat memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL | shasum -a 256 | cut -d " " -f 1 | xxd -r -p | base64)
-SIGN="${SIGN:0:-1}"
-SIZE=$(stat --printf="%s" memmod-1.0.1/memmod-1.0.1.dist-info/WHEEL)
-sed -e "s;WHEEL,sha256=.*$;WHEEL,sha256=$SIGN,$SIZE;g" memmod-1.0.1/memmod-1.0.1.dist-info/RECORD > temp.txt
-mv temp.txt memmod-1.0.1/memmod-1.0.1.dist-info/RECORD
-cp x64/Release36/_memmod.pyd memmod-1.0.1/memmod
-SIGN=$(cat memmod-1.0.1/memmod/_memmod.pyd | shasum -a 256 | cut -d " " -f 1 | xxd -r -p | base64)
-SIGN="${SIGN:0:-1}"
-SIZE=$(stat --printf="%s" memmod-1.0.1/memmod/_memmod.pyd)
-sed -e "s;_memmod\.pyd,sha256=.*$;_memmod\.pyd,sha256=$SIGN,$SIZE;g" memmod-1.0.1/memmod-1.0.1.dist-info/RECORD > temp.txt
-mv temp.txt memmod-1.0.1/memmod-1.0.1.dist-info/RECORD
-wheel pack memmod-1.0.1
-rm -rf memmod-1.0.1/
+OLDPATH=$PATH
+PATH=$PYDIR3_32_WIN:$PYDIR3_32_WIN/Scripts:$PATH
+echo "[*] Building python3 lib for win32"
+python.exe setup.py bdist_wheel &> /dev/null || exit
+PATH=$OLDPATH
 
-mv memmod-1.0.1-cp* dist
+OLDPATH=$PATH
+PATH=$PYDIR3_64_WIN:$PYDIR3_64_WIN/Scripts:$PATH
+echo "[*] Building python3 lib for x64"
+python.exe setup.py bdist_wheel &> /dev/null || exit
+PATH=$OLDPATH

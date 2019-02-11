@@ -1,4 +1,4 @@
-#include "memmod.h"
+#include "_memmod.h"
 #include <time.h>
 
 /*
@@ -46,10 +46,10 @@ void get_time(char * buffer) {
 }
 
 static void _log(int log_type, const char * str) {
+    char str_base[40];
     if (logfile == NULL || log_type > loglevel) {
         return;
     }
-    char str_base[38];
     switch(log_type) {
     case LOG_ERROR: memcpy(str_base, LOG_ERROR_STR, sizeof(LOG_ERROR_STR)); break;
     case LOG_INFO:  memcpy(str_base, LOG_INFO_STR,  sizeof(LOG_INFO_STR));  break;
@@ -109,7 +109,11 @@ static PyObject * memmod_MemoryLoadLibrary(PyObject *self, PyObject *args) {
         PyErr_SetString(PyExc_Exception, "Expected a COM this pointer as first argument");
         return NULL;
     }
-    return Py_BuildValue("K", (Py_ssize_t)handle);
+#ifdef _WIN32
+    return Py_BuildValue("I", (size_t)handle);
+#else
+    return Py_BuildValue("K", (size_t)handle);
+#endif
 }
 
 static PyObject * memmod_MemoryGetProcAddress(PyObject *self, PyObject *args) {
@@ -122,7 +126,11 @@ static PyObject * memmod_MemoryGetProcAddress(PyObject *self, PyObject *args) {
         return NULL;
     }
     func = MemoryGetProcAddress(handle, name);
-    return Py_BuildValue("K", (Py_ssize_t)func);
+#ifdef _WIN32
+    return Py_BuildValue("I", (size_t)func);
+#else
+    return Py_BuildValue("K", (size_t)func);
+#endif
 }
 
 static PyObject * memmod_MemoryFreeLibrary(PyObject *self, PyObject *args) {
@@ -195,7 +203,11 @@ static PyObject * memmod_InitCFuncPtr(PyObject *self_, PyObject *args) {
         Py_DECREF(ftuple);
         return NULL;
     }
+#if defined(_WIN32) && PY_MAJOR_VERSION < 3
+    if (!PyInt_Check(obj)) {
+#else
     if (!PyLong_Check(obj)) {
+#endif
         PyErr_SetString(PyExc_TypeError,
                         "the _handle attribute of the second argument must be an integer");
         Py_DECREF(ftuple);
@@ -292,23 +304,24 @@ EXP_FUNC void init_memmod(void)
 
 #endif // ! Python version
 {
+#if PY_MAJOR_VERSION >= 3
+    PyObject *module = PyModule_Create(&_memmodmodule);
+#else
+    PyObject *module = Py_InitModule("_memmod", _memmod_module_methods);
+#endif
+    struct module_state *st;
+
     logfile = NULL;
 #ifdef _DEBUG
     loglevel = LOG_DEBUG;
 #else
     loglevel = LOG_ERROR;
 #endif
-    
-#if PY_MAJOR_VERSION >= 3
-    PyObject *module = PyModule_Create(&_memmodmodule);
-#else
-    PyObject *module = Py_InitModule("_memmod", _memmod_module_methods);
-#endif
 
     if (!module) {
         INITERROR;
     }
-    struct module_state *st = GETSTATE(module);
+    st = GETSTATE(module);
 
     st->error = PyErr_NewException("memmod.Error", NULL, NULL);
     if (st->error == NULL) {

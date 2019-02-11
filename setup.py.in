@@ -59,21 +59,25 @@ if ARCH == '64bit':
         ENV = 'mingw64'
     else:
         ENV = 'win64'
+    ARCH_SUFFIX = 'x86_64'
 elif ARCH == '32bit':
     if path.join('mingw32', 'bin') in PYEXEPATH:
         ENV = 'mingw32'
     else:
         ENV = 'win32'
+    ARCH_SUFFIX = 'win32'
 else:
     raise Exception('Unsupported architecture')
 
 CXXINCS = ''
 if 'mingw' in ENV:
-    CFLAGS   = ['-std=c11', '-Wall', '-pedantic']
-    CXXFLAGS = ['-std=c++17', '-Wall', '-pedantic']
+    CFLAGS   = ['-std=c11', '-Wall']
+    CXXFLAGS = ['-std=c++17', '-Wall']
 else:
     CFLAGS   = []
     CXXFLAGS = []
+
+CFLAGS.append('-DPy_DBUG=0')
 
 def lookup(path_, ext):
     res = []
@@ -82,12 +86,11 @@ def lookup(path_, ext):
     return res
 
 _memmod = Extension('memmod._memmod',
-    sources = lookup('src', ['*.c']),
-    extra_link_args=["-Wl,--add-stdcall-alias"],
+    sources = lookup('src/memmod/_memmod', ['*.c']),
     extra_compile_args=CFLAGS)
 
 setup(name = 'memmod',
-       version = '1.0.1',
+       version = %MEMMOD_VER%,
        description = 'loads dll directly from memory',
        long_description = 'Python library used to load dll libraries directly from memory',
        author='Daniel Shiko',
@@ -95,7 +98,8 @@ setup(name = 'memmod',
        url='https://github.com/Mathtin/memmod/',
        license='MPL',
        platforms = ['nt'],
-	   packages=['memmod'],
-	   package_dir={'memmod' : 'src'},
+       packages=['memmod', 'memmod.tests'],
+       package_dir={'memmod' : 'src/memmod', 'memmod.tests': 'tests'},
+       package_data={'memmod.tests': ['StrQueue-%s.dll' % ARCH_SUFFIX]},
        ext_modules=[_memmod],
-       data_files = [])
+       test_suite='tests.test_suite')

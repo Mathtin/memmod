@@ -1,1 +1,5 @@
-
+recursive-include src *.h
+recursive-include tests *.h
+recursive-include tests *.c
+include tests/Makefile
+global-exclude *.dll

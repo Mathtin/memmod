@@ -193,11 +193,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="memmod.c" />
+    <ClCompile Include="_memmod.c" />
     <ClCompile Include="MemoryModule.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="memmod.h" />
+    <ClInclude Include="_memmod.h" />
     <ClInclude Include="MemoryModule.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
