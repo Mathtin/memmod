@@ -43,7 +43,26 @@ PARAMFLAG_FIN   = 0x1
 PARAMFLAG_FOUT  = 0x2
 PARAMFLAG_FLCID = 0x4
 
+class MemCDLL(ctypes.CDLL):
+    _func_flags_ = ctypes._FUNCFLAG_CDECL
+        
+    def __init__(self, data, 
+                    mode=ctypes.DEFAULT_MODE,
+                    use_errno=False,
+                    use_last_error=False):
+        handle = MemoryLoadLibrary(data)
+        super(MemCDLL, self).__init__("[AT %X]" % handle, mode, handle, use_errno, use_last_error)
+       
+    def close(self):
+        MemoryFreeLibrary(self._handle)
+        self._handle = None
+    
+    def __bool__(self):
+        return self._handle != None
+
 class MemDLL(ctypes.WinDLL):
+    _func_flags_ = ctypes._FUNCFLAG_STDCALL
+    
     def __init__(self, data, 
                     mode=ctypes.DEFAULT_MODE,
                     use_errno=False,
@@ -57,6 +76,32 @@ class MemDLL(ctypes.WinDLL):
     
     def __bool__(self):
         return self._handle != None
+
+_c_functype_cache = {}
+def CFUNCTYPE(restype, *argtypes, **kw):
+    func_proto = ctypes.CFUNCTYPE(restype, *argtypes, **kw)
+    flags = func_proto._flags_
+    try:
+        return _c_functype_cache[(restype, argtypes, flags)]
+    except KeyError:
+        class MemCFunction(object):
+            _base_ = func_proto
+            
+            def __init__(self, tuple, paramflags=None):
+                name, dll = tuple
+                if not paramflags is None:
+                    check_paramflags(argtypes, paramflags)
+                self.__cfunc = self._base_()
+                InitCFuncPtr(self.__cfunc, (name, dll), paramflags)
+                self._dll = dll
+                
+            def __call__(self, *args, **kwargs):
+                if not self._dll:
+                    raise Exception("DLL library unloaded")
+                return self.__cfunc(*args, **kwargs)
+            
+        _c_functype_cache[(restype, argtypes, flags)] = MemCFunction
+        return MemCFunction
 
 _win_functype_cache = {}
 def WINFUNCTYPE(restype, *argtypes, **kw):

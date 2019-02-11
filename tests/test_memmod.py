@@ -75,25 +75,28 @@ class StrQueueTest(unittest.TestCase):
             self.__Delete(self.__handle)
     
     def object_load_dll(self):
+        #memmod.SetLogLevel(3)
+        #memmod.SetLogFile('memmod.log')
+        
         dllfile = open(path.join(DIR, 'StrQueue-%s.dll' % ARCH_SUFFIX), 'rb')
         data = dllfile.read()
         dllfile.close()
-        dll = memmod.MemDLL(data)
+        dll = memmod.MemCDLL(data)
         self.assertIsNotNone(dll, 'Handle not recieved')
         self.assertNotEqual(dll, 0, 'Invalid handle')
         StrQueueTest.__dll = dll
         
-        StrQueue_New_proto     = memmod.WINFUNCTYPE(ctypes.c_void_p)
-        StrQueue_Delete_proto  = memmod.WINFUNCTYPE(None, ctypes.c_void_p)
-        StrQueue_PushPop_proto = memmod.WINFUNCTYPE(None, ctypes.c_void_p, ctypes.c_char_p, ctypes.c_size_t)
-        StrQueue_Len_proto     = memmod.WINFUNCTYPE(ctypes.c_size_t, ctypes.c_void_p)
-        StrQueue_Empty_proto   = memmod.WINFUNCTYPE(ctypes.c_int, ctypes.c_void_p)
+        StrQueue_New_proto     = memmod.CFUNCTYPE(ctypes.c_void_p)
+        StrQueue_Delete_proto  = memmod.CFUNCTYPE(None, ctypes.c_void_p)
+        StrQueue_PushPop_proto = memmod.CFUNCTYPE(None, ctypes.c_void_p, ctypes.c_char_p, ctypes.c_size_t)
+        StrQueue_Len_proto     = memmod.CFUNCTYPE(ctypes.c_size_t, ctypes.c_size_t)
+        StrQueue_Empty_proto   = memmod.CFUNCTYPE(ctypes.c_int, ctypes.c_void_p)
         
-        self.assertIsNotNone(StrQueue_New_proto,        'WINFUNCTYPE returned None')
-        self.assertIsNotNone(StrQueue_Delete_proto,     'WINFUNCTYPE returned None')
-        self.assertIsNotNone(StrQueue_PushPop_proto,    'WINFUNCTYPE returned None')
-        self.assertIsNotNone(StrQueue_Len_proto,        'WINFUNCTYPE returned None')
-        self.assertIsNotNone(StrQueue_Empty_proto,      'WINFUNCTYPE returned None')
+        self.assertIsNotNone(StrQueue_New_proto,        'CFUNCTYPE returned None')
+        self.assertIsNotNone(StrQueue_Delete_proto,     'CFUNCTYPE returned None')
+        self.assertIsNotNone(StrQueue_PushPop_proto,    'CFUNCTYPE returned None')
+        self.assertIsNotNone(StrQueue_Len_proto,        'CFUNCTYPE returned None')
+        self.assertIsNotNone(StrQueue_Empty_proto,      'CFUNCTYPE returned None')
 
         StrQueueTest.__New    = StrQueue_New_proto(("StrQueue_New", dll))
         StrQueueTest.__Delete = StrQueue_Delete_proto(("StrQueue_Delete", dll))
@@ -102,12 +105,12 @@ class StrQueueTest(unittest.TestCase):
         StrQueueTest.__Len    = StrQueue_Len_proto(("StrQueue_Len", dll))
         StrQueueTest.__Empty  = StrQueue_Empty_proto(("StrQueue_Empty", dll))
         
-        self.assertIsInstance(StrQueueTest.__New,       StrQueue_New_proto,     'WINFUNCTYPE proto returned invalid object')
-        self.assertIsInstance(StrQueueTest.__Delete,    StrQueue_Delete_proto,  'WINFUNCTYPE proto returned invalid object')
-        self.assertIsInstance(StrQueueTest.__Push,      StrQueue_PushPop_proto, 'WINFUNCTYPE proto returned invalid object')
-        self.assertIsInstance(StrQueueTest.__Pop,       StrQueue_PushPop_proto, 'WINFUNCTYPE proto returned invalid object')
-        self.assertIsInstance(StrQueueTest.__Len,       StrQueue_Len_proto,     'WINFUNCTYPE proto returned invalid object')
-        self.assertIsInstance(StrQueueTest.__Empty,     StrQueue_Empty_proto,   'WINFUNCTYPE proto returned invalid object')
+        self.assertIsInstance(StrQueueTest.__New,       StrQueue_New_proto,     'CFUNCTYPE proto returned invalid object')
+        self.assertIsInstance(StrQueueTest.__Delete,    StrQueue_Delete_proto,  'CFUNCTYPE proto returned invalid object')
+        self.assertIsInstance(StrQueueTest.__Push,      StrQueue_PushPop_proto, 'CFUNCTYPE proto returned invalid object')
+        self.assertIsInstance(StrQueueTest.__Pop,       StrQueue_PushPop_proto, 'CFUNCTYPE proto returned invalid object')
+        self.assertIsInstance(StrQueueTest.__Len,       StrQueue_Len_proto,     'CFUNCTYPE proto returned invalid object')
+        self.assertIsInstance(StrQueueTest.__Empty,     StrQueue_Empty_proto,   'CFUNCTYPE proto returned invalid object')
         
     def object_init(self):
         self.__handle = self.__New()

@@ -45,10 +45,10 @@ lib32: $(BIN_32)
 lib64: $(BIN_64)
 
 $(BIN_32): $(OBJ_32)
-	$(CC_32) -shared $(LINKOBJ_32) -o $@ -Wl,--add-stdcall-alias
+	$(CC_32) -shared $(LINKOBJ_32) -o $@
 
 $(BIN_64): $(OBJ_64)
-	$(CC_64) -shared $(LINKOBJ_64) -o $@ -Wl,--add-stdcall-alias
+	$(CC_64) -shared $(LINKOBJ_64) -o $@
 
 # Object-file dependencies
 $(OBJ_DIR)/StrQueue-32.o: StrQueue.c

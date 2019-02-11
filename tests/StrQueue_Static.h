@@ -124,16 +124,12 @@
 #undef STRQUEUE_EXP
 #if defined(__WINDOWS__) && !defined(__MINGW32__) //MinGW32 does not support _declspec
     #ifdef STRQUEUE_DLL_EXPORT
-        #define STRQUEUE_EXP extern _declspec(dllexport)
+        #define STRQUEUE_EXP extern _declspec(dllexport) __cdecl 
     #else
-        #define STRQUEUE_EXP extern _declspec(dllimport)
+        #define STRQUEUE_EXP extern _declspec(dllimport) __cdecl 
     #endif
 #else //defined(__WINDOWS__) && !defined(__MINGW32__)
-    #if __GNUC__ >= 4
-        #define STRQUEUE_EXP __attribute__ ((visibility("default")))
-    #else
-        #define STRQUEUE_EXP
-    #endif
+    #define STRQUEUE_EXP __attribute__((__cdecl__))
 #endif //defined(__WINDOWS__) && !defined(__MINGW32__)
 
 #include <stddef.h>

@@ -109,10 +109,10 @@ static PyObject * memmod_MemoryLoadLibrary(PyObject *self, PyObject *args) {
         PyErr_SetString(PyExc_Exception, "Expected a COM this pointer as first argument");
         return NULL;
     }
-#ifdef _WIN32
-    return Py_BuildValue("I", (size_t)handle);
-#else
+#ifdef _WIN64
     return Py_BuildValue("K", (size_t)handle);
+#else
+    return Py_BuildValue("I", (size_t)handle);
 #endif
 }
 
@@ -126,10 +126,10 @@ static PyObject * memmod_MemoryGetProcAddress(PyObject *self, PyObject *args) {
         return NULL;
     }
     func = MemoryGetProcAddress(handle, name);
-#ifdef _WIN32
-    return Py_BuildValue("I", (size_t)func);
-#else
+#ifdef _WIN64
     return Py_BuildValue("K", (size_t)func);
+#else
+    return Py_BuildValue("I", (size_t)func);
 #endif
 }
 
@@ -179,7 +179,6 @@ static PyObject * memmod_InitCFuncPtr(PyObject *self_, PyObject *args) {
     HMEMORYMODULE handle;
     PyObject *paramflags = NULL;
     _log(LOG_DEBUG, "InitCFuncPtr call");
-    
     // InitCFuncPtr(self, (ftuple), paramflags)
     if (!PyArg_ParseTuple(args, "OO|O", (PyObject *)&self, &ftuple, &paramflags)) {
         return NULL;
@@ -203,7 +202,7 @@ static PyObject * memmod_InitCFuncPtr(PyObject *self_, PyObject *args) {
         Py_DECREF(ftuple);
         return NULL;
     }
-#if defined(_WIN32) && PY_MAJOR_VERSION < 3
+#if !defined(_WIN64) && PY_MAJOR_VERSION < 3
     if (!PyInt_Check(obj)) {
 #else
     if (!PyLong_Check(obj)) {
@@ -222,8 +221,8 @@ static PyObject * memmod_InitCFuncPtr(PyObject *self_, PyObject *args) {
         Py_DECREF(ftuple);
         return NULL;
     }
-    
     address = MemoryGetProcAddress(handle, name);
+    _log(LOG_DEBUG, "InitCFuncPtr step");
     if (!address) {
         if (!IS_INTRESOURCE(name))
             PyErr_Format(PyExc_AttributeError,
