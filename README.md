@@ -11,5 +11,4 @@ If you don't want to build it, binaries are available on https://github.com/Math
 Mozilla Public License 2.0
 
 ## Author
-* Joachim Bauch `fancycode`, https://www.joachim-bauch.de/
 * Daniel Shiko `Mathtin`, https://mathtin.ru
